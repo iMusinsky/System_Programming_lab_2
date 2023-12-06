@@ -3,6 +3,7 @@
 
 // Этот файл должен находится в директории проекта
 #define PATH_NAME_FOR_FTOK "MSG"
+#define PROJECT_ID_FOR_FTOK 13
 
 enum REQUEST_TYPE
 {
