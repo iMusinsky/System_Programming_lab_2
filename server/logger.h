@@ -8,14 +8,16 @@
 #define __LOGGER_H__
 
 /// Макрос инициализации статического внутреннего логгера
-#define LOGGER_INIT(is_enable, level, stream) logger_enable(is_enable, level, stream)
+#define LOGGER_INIT(is_enable, level, stream) logger_init(is_enable, level, stream)
+/// Макрос инициализации статического внутреннего логгера. Создается файл по указанному пути с именем год-месяц-день_часы:минуты:секунды.log
+#define LOGGER_INIT_FILE(is_enable, level, path) logger_init(is_enable, level, path)
 /// Макрос включения логгирования
 #define LOGGER_ENABLE() logger_enable()
 /// Макрос отключения логгирования
 #define LOGGER_DISABLE() logger_disable()
 /// Макрос установки уровня важности сообщений
 #define LOGGER_SET_LEVEL(level) logger_set_level(level)
-/// Макрос
+/// Макрос установки потока вывода логов
 #define LOGGER_SET_STREAM(stream) logger_set_stream(stream)
 /// Макрос создания записи лога с заданным уровнем
 #define LOG(level, format, ...) logging(create_entry(level, __LINE__, __FILE__, LOGGING_FUNCION_NAME, format, ##__VA_ARGS__));

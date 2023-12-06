@@ -91,7 +91,9 @@ void logger_init_file(const bool is_enable, const unsigned level, const char *pa
             now->tm_hour,
             now->tm_min,
             now->tm_sec);
-    FILE* fd = open(path, O_CREAT | O_RDWR);
+    FILE* file_stream = open(path, O_CREAT | O_RDWR);
+    logger_init(is_enable, level, file_stream);
+    LOG_INFO("Инициализация логгера");
 }
 
 void logger_enable()
@@ -136,7 +138,7 @@ void logging(entry_t *entry)
         return;
     char buffer[SIZE_OF_FORMATING_BUFFER];
     struct tm *t = localtime(&entry->time_stamp);
-    sprintf(buffer, "#%d [%s] [%02d-%02d-%4d %02d:%02d:%02d] %s : %s",
+    sprintf(buffer, "#%d [%s] [%02d-%02d-%4d %02d:%02d:%02d] %s : %s\n",
             entry->id,
             level_to_string(entry->level),
             t->tm_mday,
