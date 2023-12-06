@@ -3,11 +3,23 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include <time.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <sys/syscall.h>
-#include <stdbool.h>
+
+#define SIZE_OF_MESSAGE_BUFFER 	512
+#define SIZE_OF_FORMATING_BUFFER SIZE_OF_MESSAGE_BUFFER + 256
+
+enum LOG_LEVEL
+{
+    LEVEL_OFF  = 0,
+    LEVEL_ERROR,
+    LEVEL_WARN,
+    LEVEL_INFO,
+    LEVEL_DEBUG
+};
 
 typedef struct Entry
 {
@@ -27,8 +39,12 @@ typedef struct Logger
 	FILE* stream;
 } logger_t;
 
-entry_t *create_entry(const unsigned level, const unsigned number_line,
-	const char *name_file, const char *name_function, const char *format, ...)
+
+static logger_t instance;
+
+
+entry_t* create_entry(const unsigned level, const unsigned number_line,
+	const char* name_file, const char* name_function, const char* format, ...)
 {
 	static unsigned counter = 0;
 	entry_t* entry = (entry_t*)malloc(sizeof(entry_t));
@@ -40,18 +56,8 @@ entry_t *create_entry(const unsigned level, const unsigned number_line,
     entry->number_line = number_line;
 	va_list args;
 	va_start(args, format);
-	// TODO почему не видит директиву LOGGING_SIZE_OF_MESSAGE_BUFFER
-	entry->message = (char*)malloc(512 * sizeof(char));
+	entry->message = (char*)malloc(SIZE_OF_MESSAGE_BUFFER * sizeof(char));
 	vsprintf(entry->message, format, args);
-	va_end(args);
-	return entry;
-}
-
-entry_t *create_entry(const unsigned level, const char *format, ...)
-{
-	va_list args;
-	va_start(args, format);
-	entry_t* entry = create_entry(level, 0, NULL, NULL, format, args);
 	va_end(args);
 	return entry;
 }
@@ -64,31 +70,51 @@ void delete_entry(entry_t* entry)
 		free(entry);
 	}
 }
-logger_t *create_logger(const bool is_enable, const unsigned level, FILE *stream)
+
+void logger_init(const bool is_enable, const unsigned level, FILE *stream)
 {
-	logger_t* logger = (logger_t*)malloc(sizeof(logger_t));
-	logger->level = level;
-	logger->is_enable = is_enable;
-	logger->stream = stream;
-	return logger;
+	instance.level = level;
+	instance.is_enable = is_enable;
+	instance.stream = stream;
 }
 
-void delete_logger(logger_t* logger)
+void logger_enable()
 {
-    if (logger != NULL)
-	    free(logger);
+    instance.is_enable = true;
 }
 
-const char* level_to_string(unsigned level)
+void logger_disable()
 {
+    instance.is_enable = false;
+}
+
+void logger_set_level(const unsigned level)
+{
+    instance.level = level;
+}
+
+void logger_set_stream(FILE* stream)
+{
+    instance.stream = stream;
+}
+
+const char* level_to_string(const unsigned level)
+{
+    switch (level)
+    {
+        case LEVEL_ERROR:   return "error";
+        case LEVEL_WARN:    return "warn ";
+        case LEVEL_INFO:    return "info ";
+        case LEVEL_DEBUG:   return "debug";
+    }
 	return "";
 }
 
-void logging(logger_t *logger, entry_t *entry)
+void logging(entry_t *entry)
 {
-    if (logger == NULL || entry == NULL || entry->level > logger->level)
+    if (entry == NULL || entry->level > instance.level || instance.is_enable == false)
         return;
-	char buffer[768];
+	char buffer[SIZE_OF_FORMATING_BUFFER];
     struct tm *t = localtime(&entry->time_stamp);
 	sprintf(buffer, "#%d [%s] [%02d-%02d-%4d %02d:%02d:%02d] %s : %s",
 					entry->id,
@@ -101,6 +127,6 @@ void logging(logger_t *logger, entry_t *entry)
 					t->tm_sec,
 					entry->name_function,
 					entry->message);
-	fputs(buffer, logger->stream);
+	fputs(buffer, instance.stream);
     delete_entry(entry);
 }
