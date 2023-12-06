@@ -7,6 +7,7 @@
 #include <time.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include <sys/syscall.h>
 
 #define SIZE_OF_MESSAGE_BUFFER 512
@@ -75,6 +76,22 @@ void logger_init(const bool is_enable, const unsigned level, FILE *stream)
     instance.level = level;
     instance.is_enable = is_enable;
     instance.stream = stream;
+}
+
+void logger_init_file(const bool is_enable, const unsigned level, const char *path)
+{
+    char buffer[SIZE_OF_FORMATING_BUFFER];
+    time_t tmp = time(NULL);
+    struct tm *now = localtime(&tmp);
+    sprintf(buffer, "%s\\%d-%2d-%2d_%2d:%2d:%2d.log",
+            path,
+            now->tm_year + 1900,
+            now->tm_mon + 1,
+            now->tm_mday,
+            now->tm_hour,
+            now->tm_min,
+            now->tm_sec);
+    FILE* fd = open(path, O_CREAT | O_RDWR);
 }
 
 void logger_enable()

@@ -58,8 +58,7 @@ enum LOG_LEVEL
     LEVEL_INFO,
     LEVEL_DEBUG
 };
-struct entry_t;
-struct logger_t;
+typedef struct Entry entry_t;
 
 /// @brief Создание записи лога с выделением памяти и форматированием сообщения
 /// @param level Уроваень важности записи лога
@@ -70,7 +69,7 @@ struct logger_t;
 /// @param ... Параметры для форматирования
 /// @return Указатель на новую запись лога
 extern entry_t *create_entry(const unsigned level, const unsigned number_line,
-                             const char *name_file, const char *name_function, const char *format, ...);
+    const char *name_file, const char *name_function, const char *format, ...);
 
 /// @brief Освобождение памяти, занимаемой записью лога
 /// @param entry Указатель на запись для удаления
@@ -81,6 +80,12 @@ extern void delete_entry(entry_t *entry);
 /// @param level Уровень важности выводимых записей
 /// @param stream Указатель на поток вывода записей
 extern void logger_init(const bool is_enable, const unsigned level, FILE *stream);
+
+/// @brief Инициализация статического внетреннего логгера. Создается файл по указанному пути с именем год-месяц-день_часы:минуты:секунды.log
+/// @param is_enable Должен ли работать логгер после иницализации
+/// @param level Уровень важности выводимых записей
+/// @param path Путь, по которому будет создан файл, в который будет писаться лог
+extern void logger_init_file(const bool is_enable, const unsigned level, const char *path);
 
 /// @brief Включить логгирование
 extern void logger_enable();
