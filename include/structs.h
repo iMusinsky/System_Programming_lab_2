@@ -1,6 +1,8 @@
 #ifndef __STRUCTS_H__
 #define __STRUCTS_H__
 
+#define SERVER_PORT 12345
+
 enum REQUEST_TYPE
 {
     REQUEST_CALC_1,
