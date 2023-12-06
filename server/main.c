@@ -1,5 +1,5 @@
 #include <stdio.h>
-
+# define MY_NAME_IS_PUPA
 #include "structs.h"
 #include "handler.h"
 
