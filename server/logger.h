@@ -1,47 +1,59 @@
 /*!
-	\brief Файл, содержащий реализацию логгера
-	\author Шпагин Д.
-	\date 5 дек. 2023 г.
+    \brief Файл, содержащий реализацию логгера
+    \author Шпагин Д.
+    \date 5 дек. 2023 г.
 */
 
 #ifndef __LOGGER_H__
 #define __LOGGER_H__
 
-# define LOGGER_INIT(is_enable, level, stream) logger_enable(is_enable, level, stream)
-# define LOGGER_ENABLE() logger_enable()
-# define LOGGER_DISABLE() logger_disable()
-# define LOGGER_SET_LEVEL(level) logger_set_level(level)
-# define LOGGER_SET_STREAM(stream) logger_set_stream(stream)
-# define LOG(level, format, ...) logging(create_entry(level, __LINE__, __FILE__, LOGGING_FUNCION_NAME, format, ##__VA_ARGS__));
-# define LOG_ERROR(format, ...) LOG(LEVEL_ERROR, format, ##__VA_ARGS__)
-# define LOG_WARN(format, ...) LOG(LEVEL_WARN,  format, ##__VA_ARGS__)
-# define LOG_INFO(format, ...) LOG(LEVEL_INFO,  format, ##__VA_ARGS__)
-# define LOG_DEBUG(format, ...) LOG(LEVEL_DEBUG, format, ##__VA_ARGS__)
-# define GET_NAME_VAR(variable) #variable
+/// Макрос инициализации статического внутреннего логгера
+#define LOGGER_INIT(is_enable, level, stream) logger_enable(is_enable, level, stream)
+/// Макрос включения логгирования
+#define LOGGER_ENABLE() logger_enable()
+/// Макрос отключения логгирования
+#define LOGGER_DISABLE() logger_disable()
+/// Макрос установки уровня важности сообщений
+#define LOGGER_SET_LEVEL(level) logger_set_level(level)
+/// Макрос
+#define LOGGER_SET_STREAM(stream) logger_set_stream(stream)
+/// Макрос создания записи лога с заданным уровнем
+#define LOG(level, format, ...) logging(create_entry(level, __LINE__, __FILE__, LOGGING_FUNCION_NAME, format, ##__VA_ARGS__));
+/// Макрос создания записи лога с уровнем ошибки
+#define LOG_ERROR(format, ...) LOG(LEVEL_ERROR, format, ##__VA_ARGS__)
+/// Макрос создания записи лога с уровнем предупреждения
+#define LOG_WARN(format, ...) LOG(LEVEL_WARN, format, ##__VA_ARGS__)
+/// Макрос создания записи лога с уровнем информации о системе
+#define LOG_INFO(format, ...) LOG(LEVEL_INFO, format, ##__VA_ARGS__)
+/// Макрос создания записи лога с уровнем отладки
+#define LOG_DEBUG(format, ...) LOG(LEVEL_DEBUG, format, ##__VA_ARGS__)
+/// Макрос получения строки имени переменной. Например, int counter; GET_NAME_VAR(counter) вернет "counter"
+#define GET_NAME_VAR(variable) #variable
 
-# if defined(__GNUC__) || (defined(__MWERKS__) && (__MWERKS__ >= 0x3000)) || (defined(__ICC) && (__ICC >= 600)) || defined(__ghs__)
-# 	define LOGGING_FUNCION_NAME __PRETTY_FUNCTION__
-# elif defined(__DMC__) && (__DMC__ >= 0x810)
-# 	define LOGGING_FUNCION_NAME __PRETTY_FUNCTION__
-# elif defined(__FUNCSIG__)
-# 	define LOGGING_FUNCION_NAME __FUNCSIG__
-# elif (defined(__INTEL_COMPILER) && (__INTEL_COMPILER >= 600)) || (defined(__IBMCPP__) && (__IBMCPP__ >= 500))
-# 	define LOGGING_FUNCION_NAME __FUNCTION__
-# elif defined(__BORLANDC__) && (__BORLANDC__ >= 0x550)
-# 	define LOGGING_FUNCION_NAME __FUNC__
-# elif defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901)
-# 	define LOGGING_FUNCION_NAME __func__
-# else
-# 	define LOGGING_FUNCION_NAME ""
-# endif
+// Подбор доступной в данном компиляторе предопределенной директивы имени/сигнатуры функции
+#if defined(__GNUC__) || (defined(__MWERKS__) && (__MWERKS__ >= 0x3000)) || (defined(__ICC) && (__ICC >= 600)) || defined(__ghs__)
+#define LOGGING_FUNCION_NAME __PRETTY_FUNCTION__
+#elif defined(__DMC__) && (__DMC__ >= 0x810)
+#define LOGGING_FUNCION_NAME __PRETTY_FUNCTION__
+#elif defined(__FUNCSIG__)
+#define LOGGING_FUNCION_NAME __FUNCSIG__
+#elif (defined(__INTEL_COMPILER) && (__INTEL_COMPILER >= 600)) || (defined(__IBMCPP__) && (__IBMCPP__ >= 500))
+#define LOGGING_FUNCION_NAME __FUNCTION__
+#elif defined(__BORLANDC__) && (__BORLANDC__ >= 0x550)
+#define LOGGING_FUNCION_NAME __FUNC__
+#elif defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901)
+#define LOGGING_FUNCION_NAME __func__
+#else
+#define LOGGING_FUNCION_NAME ""
+#endif
 
 #include <stdio.h>
 #include <stdbool.h>
 
+/// @brief Перечисление с уровням важности лога. LEVEL_OFF - максимальный приоритет, LEVEL_DEBUG - минимальный
 enum LOG_LEVEL
 {
-    LEVEL_OFF  = 0,
-    LEVEL_ERROR,
+    LEVEL_ERROR = 1,
     LEVEL_WARN,
     LEVEL_INFO,
     LEVEL_DEBUG
@@ -49,15 +61,43 @@ enum LOG_LEVEL
 struct entry_t;
 struct logger_t;
 
-extern entry_t* create_entry(const unsigned level, const unsigned number_line,
-	const char* name_file, const char* name_function, const char* format, ...);
-extern void delete_entry(entry_t* entry);
+/// @brief Создание записи лога с выделением памяти и форматированием сообщения
+/// @param level Уроваень важности записи лога
+/// @param number_line Номер строки, в который было вызвано создание записи (директива __LINE__)
+/// @param name_file Имя файла, в котором было вызвано создание записи (директива __FILE__)
+/// @param name_function Имя функции, в которой было вызвано создание записи (директива LOGGING_FUNCION_NAME)
+/// @param format Строка форматирования
+/// @param ... Параметры для форматирования
+/// @return Указатель на новую запись лога
+extern entry_t *create_entry(const unsigned level, const unsigned number_line,
+                             const char *name_file, const char *name_function, const char *format, ...);
 
-extern void logger_init(const bool is_enable, const unsigned level, FILE* stream);
+/// @brief Освобождение памяти, занимаемой записью лога
+/// @param entry Указатель на запись для удаления
+extern void delete_entry(entry_t *entry);
+
+/// @brief Инициализация статического внутреннего логгера
+/// @param is_enable Должен ли работать логгер после иницализации
+/// @param level Уровень важности выводимых записей
+/// @param stream Указатель на поток вывода записей
+extern void logger_init(const bool is_enable, const unsigned level, FILE *stream);
+
+/// @brief Включить логгирование
 extern void logger_enable();
+
+/// @brief Выключить логгирование
 extern void logger_disable();
+
+/// @brief Установить уровень важности выводимых записей
+/// @param level Уровень важности
 extern void logger_set_level(const unsigned level);
-extern void logger_set_stream(FILE* stream);
-extern void logging(entry_t* entry);
+
+/// @brief Установить поток вывода записей
+/// @param stream Указатель на поток вывода записей
+extern void logger_set_stream(FILE *stream);
+
+/// @brief Вывести запись лога в поток
+/// @param entry Указатель на запись
+extern void logging(entry_t *entry);
 
 #endif // __LOGGER_H__
