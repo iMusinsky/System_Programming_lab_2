@@ -1,7 +1,8 @@
 #ifndef __STRUCTS_H__
 #define __STRUCTS_H__
 
-#define SERVER_PORT 12345
+// Этот файл должен находится в директории проекта
+#define PATH_NAME_FOR_FTOK "MSG"
 
 enum REQUEST_TYPE
 {
@@ -27,9 +28,29 @@ struct request
 struct reply
 {
     int   reply_code;
-
     int   req_type;
     float result;
+};
+
+enum MESSAGE_TYPE
+{
+    MESSAGE_BAD = -1,
+    MESSAGE_REQUEST,
+    MESSAGE_REPLY,
+    MESSAGE_N
+};
+
+struct msg_data
+{
+    long  pid;
+    int   msg_type; // Тип переданного сообщения (enum MESSAGE_TYPE)
+    void *data;     // Приведенная к void* структура запроса или ответа
+};
+
+struct message
+{
+    long type; // Тип для адресации в очереди сообщений
+    struct msg_data payload;
 };
 
 #endif // !__STRUCTS_H__
