@@ -1,14 +1,15 @@
 #include "logger.h"
 
-#include <stdarg.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdbool.h>
-#include <time.h>
-#include <sys/types.h>
-#include <unistd.h>
 #include <fcntl.h>
+#include <pthread.h>
+#include <stdarg.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <sys/syscall.h>
+#include <sys/types.h>
+#include <time.h>
+#include <unistd.h>
 
 #define SIZE_OF_MESSAGE_BUFFER 512
 #define SIZE_OF_FORMATING_BUFFER SIZE_OF_MESSAGE_BUFFER + 256
@@ -38,6 +39,7 @@ typedef struct Logger
     bool is_enable;
     unsigned level;
     FILE *stream;
+    pthread_mutex_t mutex;
 } logger_t;
 
 static logger_t instance;
@@ -76,6 +78,7 @@ void logger_init(const bool is_enable, const unsigned level, FILE *stream)
     instance.level = level;
     instance.is_enable = is_enable;
     instance.stream = stream;
+    pthread_mutex_init(&instance.mutex, NULL);
 }
 
 void logger_init_file(const bool is_enable, const unsigned level, const char *path)
@@ -134,6 +137,7 @@ const char *level_to_string(const unsigned level)
 
 void logging(entry_t *entry)
 {
+    pthread_mutex_lock(&instance.mutex);
     if (entry == NULL || entry->level > instance.level || instance.is_enable == false)
         return;
     char buffer[SIZE_OF_FORMATING_BUFFER];
@@ -151,4 +155,5 @@ void logging(entry_t *entry)
             entry->message);
     fputs(buffer, instance.stream);
     delete_entry(entry);
+    pthread_mutex_unlock(&instance.mutex);
 }

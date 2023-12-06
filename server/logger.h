@@ -2,6 +2,10 @@
     \brief Файл, содержащий реализацию логгера
     \author Шпагин Д.
     \date 5 дек. 2023 г.
+    Перед использование логгер необходимо инициализировать фунцией logger_init, logger_init_file или соответствующими макросами.
+    Желательно, использовать не функции, а именно макросы, т.к. в случае чего с помощью лишь одной директивы можно будет заставить компилятор игнорировать эту часть кода.
+    Создать запись лога можно функцией logging или макросами LOG с припиской соответствующего уровня записи.
+    Уровни важности записей лога выстроены по приоритету от меньшего к большему: LEVEL_DEBUG < LEVEL_INFO < LEVEL_WARN < LEVEL_ERROR.
 */
 
 #ifndef __LOGGER_H__
@@ -10,7 +14,7 @@
 /// Макрос инициализации статического внутреннего логгера
 #define LOGGER_INIT(is_enable, level, stream) logger_init(is_enable, level, stream)
 /// Макрос инициализации статического внутреннего логгера. Создается файл по указанному пути с именем год-месяц-день_часы:минуты:секунды.log
-#define LOGGER_INIT_FILE(is_enable, level, path) logger_init(is_enable, level, path)
+#define LOGGER_INIT_FILE(is_enable, level, path) logger_init_file(is_enable, level, path)
 /// Макрос включения логгирования
 #define LOGGER_ENABLE() logger_enable()
 /// Макрос отключения логгирования
@@ -103,7 +107,7 @@ extern void logger_set_level(const unsigned level);
 /// @param stream Указатель на поток вывода записей
 extern void logger_set_stream(FILE *stream);
 
-/// @brief Вывести запись лога в поток
+/// @brief Вывести запись лога в поток вывода. Функция потокобезопасна
 /// @param entry Указатель на запись
 extern void logging(entry_t *entry);
 
