@@ -11,6 +11,24 @@
 #ifndef __LOGGER_H__
 #define __LOGGER_H__
 
+// В случае, если нам совсем не нужен логгер, мы можем его выкинуть из сборки
+#if !defined(USING_LOGGING)
+
+#define LOGGER_INIT(...)
+#define LOGGER_INIT_FILE(...)
+#define LOGGER_ENABLE()
+#define LOGGER_DISABLE()
+#define LOGGER_SET_LEVEL(...)
+#define LOGGER_SET_STREAM(...)
+#define LOG(...)
+#define LOG_ERROR(...)
+#define LOG_WARN(...)
+#define LOG_INFO(...)
+#define LOG_DEBUG(...)
+#define GET_NAME_VAR(...)
+
+#else
+
 /// Макрос инициализации статического внутреннего логгера
 #define LOGGER_INIT(is_enable, level, stream) logger_init(is_enable, level, stream)
 /// Макрос инициализации статического внутреннего логгера. Создается файл по указанному пути с именем год-месяц-день_часы:минуты:секунды.log
@@ -24,7 +42,7 @@
 /// Макрос установки потока вывода логов
 #define LOGGER_SET_STREAM(stream) logger_set_stream(stream)
 /// Макрос создания записи лога с заданным уровнем
-#define LOG(level, format, ...) logging(create_entry(level, __LINE__, __FILE__, LOGGING_FUNCION_NAME, format, ##__VA_ARGS__));
+#define LOG(level, format, ...) logging(create_entry(level, __LINE__, __FILE__, LOGGING_FUNCION_NAME, format, ##__VA_ARGS__))
 /// Макрос создания записи лога с уровнем ошибки
 #define LOG_ERROR(format, ...) LOG(LEVEL_ERROR, format, ##__VA_ARGS__)
 /// Макрос создания записи лога с уровнем предупреждения
@@ -111,4 +129,5 @@ extern void logger_set_stream(FILE *stream);
 /// @param entry Указатель на запись
 extern void logging(entry_t *entry);
 
+#endif // !defined(USING_LOGGING)
 #endif // __LOGGER_H__
