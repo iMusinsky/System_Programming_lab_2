@@ -1,15 +1,25 @@
-#include <stdio.h>
+// #include <stdio.h>
 
-#include "structs.h"
-#include "handler.h"
+// #include "structs.h"
+// #include "handler.h"
 
-int init();
-int work_cycle();
-int deinit();
+// int init();
+// int work_cycle();
+// int deinit();
 
-int main(int argc, char *argv[])
+// int main(int argc, char *argv[])
+// {
+//     (void)argc;
+//     (void)argv;
+//     return 0;
+// }
+
+#include "logger.h"
+
+int main()
 {
-    (void)argc;
-    (void)argv;
+    LOGGER_INIT(true, LEVEL_DEBUG, stdout);
+    LOG_INFO("Hi");
+    getchar();
     return 0;
 }

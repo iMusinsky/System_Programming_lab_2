@@ -1,5 +1,7 @@
 #include "logger.h"
 
+#if defined(USING_LOGGING)
+
 #include <fcntl.h>
 #include <pthread.h>
 #include <stdarg.h>
@@ -13,15 +15,6 @@
 
 #define SIZE_OF_MESSAGE_BUFFER 512
 #define SIZE_OF_FORMATING_BUFFER SIZE_OF_MESSAGE_BUFFER + 256
-
-enum LOG_LEVEL
-{
-    LEVEL_OFF = 0,
-    LEVEL_ERROR,
-    LEVEL_WARN,
-    LEVEL_INFO,
-    LEVEL_DEBUG
-};
 
 typedef struct Entry
 {
@@ -94,7 +87,7 @@ void logger_init_file(const bool is_enable, const unsigned level, const char *pa
             now->tm_hour,
             now->tm_min,
             now->tm_sec);
-    FILE* file_stream = open(path, O_CREAT | O_RDWR);
+    FILE* file_stream = fopen(path, O_CREAT | O_RDWR);
     logger_init(is_enable, level, file_stream);
     LOG_INFO("Инициализация логгера");
 }
@@ -157,3 +150,5 @@ void logging(entry_t *entry)
     delete_entry(entry);
     pthread_mutex_unlock(&instance.mutex);
 }
+
+#endif // defined(USING_LOGGING)
