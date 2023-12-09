@@ -15,11 +15,14 @@
 // }
 
 #include "logger.h"
+#include <stdlib.h>
 
 int main()
 {
-    LOGGER_INIT(true, LEVEL_DEBUG, stdout);
-    LOG_INFO("Hi");
+    system("pwd");
+    LOGGER_INIT_FILE(true, LEVEL_DEBUG, "/home/daniil/Desktop/System_Programming_lab_2/server");
+    for (int i = 0; i < 100; i++)
+        LOG_INFO("Hi, %d", i);
     getchar();
     return 0;
 }

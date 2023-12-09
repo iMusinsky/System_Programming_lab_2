@@ -75,7 +75,7 @@
 
 // Подбор доступной в данном компиляторе предопределенной директивы имени/сигнатуры функции
 #if defined(__GNUC__) || (defined(__MWERKS__) && (__MWERKS__ >= 0x3000)) || (defined(__ICC) && (__ICC >= 600)) || defined(__ghs__)
-#define LOGGING_FUNCION_NAME __PRETTY_FUNCTION__
+#define LOGGING_FUNCION_NAME __func__
 #elif defined(__DMC__) && (__DMC__ >= 0x810)
 #define LOGGING_FUNCION_NAME __PRETTY_FUNCTION__
 #elif defined(__FUNCSIG__)

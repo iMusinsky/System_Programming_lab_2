@@ -76,10 +76,12 @@ void logger_init(const bool is_enable, const unsigned level, FILE *stream)
 
 void logger_init_file(const bool is_enable, const unsigned level, const char *path)
 {
+    if (!path)
+        return;
     char buffer[SIZE_OF_FORMATING_BUFFER];
     time_t tmp = time(NULL);
     struct tm *now = localtime(&tmp);
-    sprintf(buffer, "%s\\%d-%2d-%2d_%2d:%2d:%2d.log",
+    sprintf(buffer, "%s/%d-%2d-%2d_%2d:%2d:%2d.log",
             path,
             now->tm_year + 1900,
             now->tm_mon + 1,
@@ -87,7 +89,7 @@ void logger_init_file(const bool is_enable, const unsigned level, const char *pa
             now->tm_hour,
             now->tm_min,
             now->tm_sec);
-    FILE* file_stream = fopen(path, O_CREAT | O_RDWR);
+    FILE* file_stream = fopen(buffer, "w");
     logger_init(is_enable, level, file_stream);
     LOG_INFO("Инициализация логгера");
 }
