@@ -10,6 +10,10 @@
 
 int num_of_tries = 0;
 
+/*
+* Инициализация клиента
+* Невозможно подключиться к очереди - не существует очереди - ошибка - выход
+*/
 int init()
 {
     key_t token = ftok(PATH_NAME_FOR_FTOK, PROJECT_ID_FOR_FTOK);
@@ -30,8 +34,12 @@ int init()
     return id; 
 }
 
+/*
+* Парсинг ответа сервера
+*/
 void parse_reply(message* msg)
 {
+    printf("Got reply. Parsing...\n");
     reply* payload = &msg->payload.reply_msg;
     if (payload->reply_code == REPLY_BAD)
     {
@@ -51,8 +59,13 @@ void parse_reply(message* msg)
     }
 }
 
+/*
+* Парсинг ответа сервера
+* ошибка в msgrcv приводит к закрытию, так как очередь закрыта
+*/
 void wait_for_response(int msg_id)
 {
+    printf("Waiting for reply...\n");
     message new = {0};
     int status = msgrcv(msg_id, &new, sizeof(message) - sizeof(long), getpid(), 0);
     if(status == -1)
@@ -71,12 +84,18 @@ void wait_for_response(int msg_id)
             parse_reply(&new);
             break;
         default:
-            printf("\nMSG queue was interupted by unexpected message. Waiting for reply...\n");
+            printf("\nMSG queue was interupted by unexpected message. \n");
             wait_for_response(msg_id);
             break;
     }
 }
 
+/*
+* Функция отправки сообщения
+* Создает запрос, отправляет его. 
+* Если произошла ошибка - повторяет еще 2 раза попытку отправить
+* Если третья попытка неудачная - фатальная ошибка, клиент закрывается
+*/
 void send_msg(int msg_id, enum REQUEST_TYPE type)
 {
     message new;
@@ -104,6 +123,10 @@ void send_msg(int msg_id, enum REQUEST_TYPE type)
 
 }
 
+/*
+* Основной цикл работы и интерфейс
+* Происходит выбор из доступных опций
+*/
 int work_cycle(int msg_id)
 {
     int is_running = 1;
@@ -144,7 +167,6 @@ int work_cycle(int msg_id)
 
 int main()
 {
-    
     printf("\nStarting client app...\n");
     int msg_id = init();
     printf("\nSuccessfully started the client app...\n");
