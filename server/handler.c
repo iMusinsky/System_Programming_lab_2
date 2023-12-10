@@ -13,6 +13,8 @@
 
 #include <time.h>
 
+#include <errno.h>
+
 struct req_1
 {
     unsigned idx;    //!< Индекс потока
@@ -31,12 +33,12 @@ void *calc_multi_vectors(void *args)
 
     for(unsigned i = offset; i < offset + inst->offset; i++) {
         float local_res = inst->v1[i] * inst->v2[i];
-        printf("pid: %ld, idx: %d, vec1[%d] * vec2[%d] = %1.2f * %1.2f = %1.2f\n", 
+        LOG(LEVEL_DEBUG, "pid: %ld, idx: %d, vec1[%d] * vec2[%d] = %1.2f * %1.2f = %1.2f", 
             thr_id, inst->idx, i, i, inst->v1[i], inst->v2[i], local_res);
         inst->res += local_res;
         usleep(10);
     }
-    printf("pid: %ld, offset: %d, idx: %d, res: %1.2f\n", 
+    LOG(LEVEL_INFO, "pid: %ld, offset: %d, idx: %d, res: %1.2f", 
         thr_id, inst->offset, inst->idx, inst->res);
 
     return NULL;
@@ -99,7 +101,7 @@ int handle_req_1(struct reply *answer)
     for (unsigned i = 0; i < thread_count; ++i) {
         answer->result += args[i].res;
     }
-    printf("Result: %g\n", answer->result);
+    LOG(LEVEL_INFO, "Result: %g", answer->result);
  
     return 0;
 }
@@ -117,11 +119,11 @@ void *write_to_file(void *args)
     struct req_2 *inst = (struct req_2*)args;
 
     pthread_t thr_id = pthread_self();
-    printf("pid: %ld start\n", thr_id);
+    LOG(LEVEL_INFO, "pid: %ld start", thr_id);
 
     for (size_t i = 0; i < inst->record_count; i++) {
         pthread_mutex_lock(&inst->mutex); 
-        printf("pid: %ld start write to file, data: %s", thr_id, inst->data_to_rec);
+        LOG(LEVEL_DEBUG, "pid: %ld start write to file, data: %s", thr_id, inst->data_to_rec);
         fwrite(inst->data_to_rec, strlen(inst->data_to_rec), 1, inst->fp);
         pthread_mutex_unlock(&inst->mutex);
         usleep(10);
@@ -142,14 +144,17 @@ int handle_req_2(struct reply *answer)
 
     strcat(root_dir, "/tmp");
     if(mkdir(root_dir, S_IRWXU) != 0) {
-        printf("Can not create dir %s\n", root_dir);
+        if (errno != EEXIST) {
+            LOG(LEVEL_ERROR, "Can not create dir %s", root_dir);
+            return -1;
+        }
     }
 
     strcat(root_dir, "/req_2");
 
     FILE *fp = fopen(root_dir, "w");
     if (fp == NULL) {
-        printf("Can not open file %s\n", root_dir);
+        LOG(LEVEL_ERROR, "Can not open file %s", root_dir);
         perror("fopen");
         return -1;
     }
@@ -165,7 +170,7 @@ int handle_req_2(struct reply *answer)
     char temp[56] = {0};
     for (unsigned i = 0; i < thread_count; ++i) {
         args[i].fp           = fp;
-        snprintf(temp, sizeof(temp), "tr(%d)\n", i);
+        snprintf(temp, sizeof(temp), "tr(%d)", i);
         args[i].data_to_rec  = strdup(temp);
         args[i].record_count = thread_count;
         args[i].mutex        = mutex;
@@ -223,7 +228,7 @@ void *read_and_write(void *args)
     struct req_3 *inst = (struct req_3*)args;
 
     pthread_t thr_id = pthread_self();
-    printf("pid: %ld start\n", thr_id);
+    LOG(LEVEL_INFO, "pid: %ld start", thr_id);
 
     const unsigned max_string_size = 256;
 
@@ -231,13 +236,13 @@ void *read_and_write(void *args)
         char tmp[max_string_size];
         memset(tmp, 0, max_string_size);
         fgets(tmp, max_string_size, inst->from);
-        printf("pid: %ld get data from file: %s", thr_id, tmp);
+        LOG(LEVEL_DEBUG, "pid: %ld get data from file: %s", thr_id, tmp);
         usleep(10);
 
-        printf("pid: %ld Handle data\n", thr_id);
+        LOG(LEVEL_DEBUG, "pid: %ld Handle data", thr_id);
 
         pthread_mutex_lock(&inst->mutex); 
-        printf("pid: %ld start write to file, write %s", thr_id, tmp);
+        LOG(LEVEL_DEBUG, "pid: %ld start write to file, write %s", thr_id, tmp);
         fputs(tmp, inst->to);
         pthread_mutex_unlock(&inst->mutex);
         usleep(100);
@@ -256,7 +261,10 @@ int handle_req_3(struct reply *answer)
 
     strcat(root_dir, "/tmp");
     if(mkdir(root_dir, S_IRWXU) != 0) {
-        printf("Can not create dir %s", root_dir);
+        if (errno != EEXIST) {
+            LOG(LEVEL_ERROR, "Can not create dir %s", root_dir);
+            return -1;
+        }
     }
 
     char file_to[max_dir_len];
@@ -266,11 +274,11 @@ int handle_req_3(struct reply *answer)
 
     FILE *fp = fopen(file_to, "w");
     if (fp == NULL) {
-        printf("Can not open file %s\n", file_to);
+        LOG(LEVEL_ERROR, "Can not open file %s", file_to);
         perror("Fopen");
         return -1;
     }
-    printf("Threads record data to file %s\n", file_to);
+    LOG(LEVEL_INFO, "Threads record data to file %s", file_to);
 
     pthread_t thrs[thread_count];
     struct req_3 args[thread_count];
@@ -295,10 +303,10 @@ int handle_req_3(struct reply *answer)
         snprintf(file_from[i], max_dir_len, "%s_thr_%d", tmp, i);
         ffrom[i] = fopen(file_from[i], "w");
         if (ffrom[i] == NULL) {
-            printf("Can not open file %s\n", file_from[i]);
+            LOG(LEVEL_ERROR, "Can not open file %s", file_from[i]);
             return -1;
         }
-        printf("Thread %d use data from file %s\n", i, file_from[i]);
+        LOG(LEVEL_DEBUG, "Thread %d use data from file %s", i, file_from[i]);
 
         int string_data_count = rand() % thread_count + 3;
         for (int j = 0; j < string_data_count; ++j) {
@@ -310,7 +318,7 @@ int handle_req_3(struct reply *answer)
         fclose(ffrom[i]);
         ffrom[i] = fopen(file_from[i], "r");
         if (ffrom[i] == NULL) {
-            printf("Can not open file %s\n", file_from[i]);
+            LOG(LEVEL_ERROR, "Can not open file %s", file_from[i]);
             return -1;
         }
     }
@@ -375,7 +383,7 @@ int handle_request(int req_type, struct reply *answer)
 
     int err = 0;
 
-    printf("Start handle request %d\n", req_type);
+    LOG(LEVEL_INFO, "Start handle request %d", req_type);
     switch (req_type)
     {
     case REQUEST_CALC_1:
@@ -391,7 +399,7 @@ int handle_request(int req_type, struct reply *answer)
     default:
         break;
     }
-    printf("End handle request %d\n", req_type);
+    LOG(LEVEL_INFO, "End handle request %d", req_type);
 
     if (err) {
         answer->req_type = REPLY_BAD;
