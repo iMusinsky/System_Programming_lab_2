@@ -1,3 +1,4 @@
+#include <string.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <sys/types.h>
@@ -7,24 +8,39 @@
 #include "structs.h"
 #include "handler.h"
 
-int init(int* msg_queue_id);
-int work_cycle();
+#define MAX_LOGGER_PATH_LENGTH 100
+#define DEFAULT_LOGGER_PATH "./logs/"
+#define DEFAULT_LOGGER_LEVEL LEVEL_DEBUG
+
+//To Do: fix names if needed and delete this ToDo
+struct logger_init_data
+{
+    int level;
+    char path[MAX_LOGGER_PATH_LENGTH];
+};
+
+int init(int* msg_queue_id,struct logger_init_data* logger_data);
+int work_cycle(int msg_queue_id);
 int deinit(int msg_queue_id);
+int args_handling(int argc, char* argv[],struct logger_init_data* logger_data);
 
 int main(int argc, char *argv[])
 {
     (void)argc;
     (void)argv;
-    
+    struct logger_init_data logger_data;
+    args_handling(argc,argv, &logger_data);
+
     int msg_queue_id = 0;
-    init(&msg_queue_id);
-    work_cycle();
+    init(&msg_queue_id,&logger_data);
+
+    work_cycle(msg_queue_id);
     deinit(msg_queue_id);
 
     return 0;
 }
 
-int init(int* msg_queue_id)
+int init(int* msg_queue_id,struct logger_init_data* logger_data)
 {
     //IPC message queue creating
     key_t key = ftok(PATH_NAME_FOR_FTOK,PROJECT_ID_FOR_FTOK);
@@ -55,5 +71,48 @@ int work_cycle(int msg_queue_id)
         handle_request(request_msg.msg_type, *reply_msg);
 
         msgsnd(msg_queue_id, *reply_msg, sizeof(reply_msg), 0);
+    }
+}
+
+int args_handling(int argc, char* argv[],struct logger_init_data* logger_data)
+{
+    if(argc == 1){
+        logger_data->level = DEFAULT_LOGGER_LEVEL;
+        strcat(logger_data->path,DEFAULT_LOGGER_PATH);
+        printf("Аргументы командной строки отсуствуют, используются значения по-умолчанию.\n");
+        return 0;
+    }
+    else if (argc == 2) {
+        //To Do: add check level 
+        int tmp = 0;
+        if (sscanf(argv[1], "%i",&tmp) == 0) {
+            printf("Ведено некорректное значение\n");
+            return -1;
+        }
+        logger_data->level = tmp;
+        strcat(logger_data->path,DEFAULT_LOGGER_PATH);
+        return 0;
+    }
+    else if (argc == 3) {
+        int tmp = 0;
+        char tmp_string[MAX_LOGGER_PATH_LENGTH];
+
+        if (sscanf(argv[1], "%i",&tmp) == 0) {
+            printf("Ведено некорректное значение\n");
+            return -1;
+        }
+
+        if (sscanf(argv[2], "%s",&tmp_string) == 0) {
+            printf("Ведено некорректное значение\n");
+            return -1;
+        }
+
+        logger_data->level = tmp;
+        strcat(logger_data->path,tmp_string);
+        return 0;
+    }
+    else if (argc >= 4) {
+        printf("Ведено слишком много аргументов\n");
+        return -1;
     }
 }
