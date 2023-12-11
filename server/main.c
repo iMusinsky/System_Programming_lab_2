@@ -99,7 +99,7 @@ int args_handling(int argc, char* argv[],struct logger_init_data* logger_data)
         //To Do: add check level 
         int tmp = 0;
         if (sscanf(argv[1], "%i",&tmp) == 0) {
-            printf("Ведено некорректное значение\n");
+            fprintf(stderr,"Ведено некорректное значение\n");
             return -1;
         }
         logger_data->level = tmp;
@@ -111,12 +111,12 @@ int args_handling(int argc, char* argv[],struct logger_init_data* logger_data)
         char tmp_string[MAX_LOGGER_PATH_LENGTH];
 
         if (sscanf(argv[1], "%i",&tmp) == 0) {
-            printf("Ведено некорректное значение\n");
+            fprintf(stderr,"Ведено некорректное значение уровня\n");
             return -1;
         }
 
         if (sscanf(argv[2], "%s",&tmp_string) == 0) {
-            printf("Ведено некорректное значение\n");
+            fprintf(stderr,"Ведено некорректное значение \n");
             return -1;
         }
 
@@ -125,7 +125,7 @@ int args_handling(int argc, char* argv[],struct logger_init_data* logger_data)
         return 0;
     }
     else if (argc >= 4) {
-        printf("Ведено слишком много аргументов\n");
+        fprintf(stderr,"Ведено слишком много аргументов\n");
         return -1;
     }
 }
