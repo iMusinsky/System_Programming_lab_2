@@ -28,11 +28,16 @@ int main(int argc, char *argv[])
 {
     (void)argc;
     (void)argv;
+
     struct logger_init_data logger_data;
-    args_handling(argc,argv, &logger_data);
+    if(args_handling(argc,argv, &logger_data)){
+        return -1;
+    }
 
     int msg_queue_id = 0;
-    init(&msg_queue_id,&logger_data);
+    if(init(&msg_queue_id,&logger_data)){
+        return -1;
+    }
 
     work_cycle(msg_queue_id);
     deinit(msg_queue_id);
@@ -44,7 +49,15 @@ int init(int* msg_queue_id,struct logger_init_data* logger_data)
 {
     //IPC message queue creating
     key_t key = ftok(PATH_NAME_FOR_FTOK,PROJECT_ID_FOR_FTOK);
+    if (key == -1) {
+        perror("Ошибка вызова функции ftok()");
+        return -1;
+    }
     *msg_queue_id = msgget(key, 0666|IPC_CREAT);
+    if (*msg_queue_id == -1) {
+        perror("Ошибка вызова функции msgget()");
+        return -1;
+    }
     //To Do: Logger initialisation 
     
     return 0;
