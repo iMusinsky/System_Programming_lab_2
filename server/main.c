@@ -77,11 +77,23 @@ int work_cycle(int msg_queue_id)
         //get request messages from queue( messages with type equal to 1)
         msgrcv(msg_queue_id,*request_msg, sizeof(request_msg), 1, 0);
 
+        //if msg_type is no a MESSAGE_REQUEST, then abort msg processing
+        if(request_msg.msg_type != MESSAGE_REQUEST){
+            //To Do: add error log
+            continue; 
+        }
+        //if source of request is server, then abort msg processing
+        if (request_msg.pid_from == 1) {
+            //To Do: add error log
+            continue; 
+        }
+
         struct message reply_msg;
         reply_msg.type = request_msg.pid_from;
         reply_msg.pid_from = 1;//To Do: fix this magic number(it's a type of server procces in msg queue) here and in msgrcv invoke
+        reply_msg.msg_type = MESSAGE_REPLY;
 
-        handle_request(request_msg.msg_type, *reply_msg);
+        handle_request(request_msg.payload.req_type, *reply_msg);
 
         msgsnd(msg_queue_id, *reply_msg, sizeof(reply_msg), 0);
     }
@@ -116,7 +128,7 @@ int args_handling(int argc, char* argv[],struct logger_init_data* logger_data)
         }
 
         if (sscanf(argv[2], "%s",&tmp_string) == 0) {
-            fprintf(stderr,"Ведено некорректное значение \n");
+            fprintf(stderr,"Ведено некорректное значение пути файлов логов \n");
             return -1;
         }
 
