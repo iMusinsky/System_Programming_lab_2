@@ -3,6 +3,6 @@
 
 #include "structs.h"
 
-int handle_request(int req_type, struct reply *answer);
+int handle_request(int req_type, reply *answer);
 
 #endif // !__HANDLER_H__

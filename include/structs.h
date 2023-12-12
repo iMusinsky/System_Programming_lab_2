@@ -5,7 +5,7 @@
 * Этот файл должен создать сервер при инициализации (и папку)
 * При прекращении работы сервера - удалить 
 */
-#define PATH_NAME_FOR_FTOK "/tmp/sys_prog_lab/MSG"
+#define PATH_NAME_FOR_FTOK "/tmp/MSG"
 #define PROJECT_ID_FOR_FTOK 13
 
 enum REQUEST_TYPE

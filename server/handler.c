@@ -44,7 +44,7 @@ void *calc_multi_vectors(void *args)
     return NULL;
 }
 
-int handle_req_1(struct reply *answer)
+int handle_req_1(reply *answer)
 {
     const unsigned vector_len = 100;
     const unsigned thread_count = 4;
@@ -96,7 +96,7 @@ int handle_req_1(struct reply *answer)
         }
     }
 
-    answer->req_type = REPLY_CHECK_RESULT;
+    answer->reply_code = REPLY_CHECK_RESULT;
     answer->result   = 0.f;
     for (unsigned i = 0; i < thread_count; ++i) {
         answer->result += args[i].res;
@@ -133,7 +133,7 @@ void *write_to_file(void *args)
 }
 
 
-int handle_req_2(struct reply *answer)
+int handle_req_2(reply *answer)
 {
     const unsigned max_dir_len = 256;
     const unsigned thread_count = 10;
@@ -170,7 +170,7 @@ int handle_req_2(struct reply *answer)
     char temp[56] = {0};
     for (unsigned i = 0; i < thread_count; ++i) {
         args[i].fp           = fp;
-        snprintf(temp, sizeof(temp), "tr(%d)", i);
+        snprintf(temp, sizeof(temp), "tr(%d)\n", i);
         args[i].data_to_rec  = strdup(temp);
         args[i].record_count = thread_count;
         args[i].mutex        = mutex;
@@ -209,7 +209,7 @@ int handle_req_2(struct reply *answer)
         }
     }
 
-    answer->req_type = REPLY_SUCCESS;
+    answer->reply_code = REPLY_SUCCESS;
     answer->result   = 0.f;
 
 
@@ -250,7 +250,7 @@ void *read_and_write(void *args)
     return NULL;
 }
 
-int handle_req_3(struct reply *answer)
+int handle_req_3(reply *answer)
 {
     const unsigned max_dir_len = 256;
     const unsigned thread_count = 10;
@@ -364,7 +364,7 @@ int handle_req_3(struct reply *answer)
         fclose(fp);
     }
 
-    answer->req_type = REPLY_SUCCESS;
+    answer->reply_code = REPLY_SUCCESS;
     answer->result   = 0.f;
 
 
@@ -372,7 +372,7 @@ int handle_req_3(struct reply *answer)
 }
 
 
-int handle_request(int req_type, struct reply *answer)
+int handle_request(int req_type, reply *answer)
 {
     if (!answer) {
         return -1;
@@ -402,7 +402,7 @@ int handle_request(int req_type, struct reply *answer)
     LOG(LEVEL_INFO, "End handle request %d", req_type);
 
     if (err) {
-        answer->req_type = REPLY_BAD;
+        answer->reply_code = REPLY_BAD;
     }
     answer->req_type = req_type;
 

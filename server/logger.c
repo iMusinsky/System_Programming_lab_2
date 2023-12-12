@@ -76,8 +76,9 @@ void logger_init(const bool is_enable, const unsigned level, FILE *stream)
 
 void logger_init_file(const bool is_enable, const unsigned level, const char *path)
 {
-    if (!path)
+    if (!path) {
         return;
+    }
     char buffer[SIZE_OF_FORMATING_BUFFER];
     time_t tmp = time(NULL);
     struct tm *now = localtime(&tmp);
@@ -90,6 +91,10 @@ void logger_init_file(const bool is_enable, const unsigned level, const char *pa
             now->tm_min,
             now->tm_sec);
     FILE* file_stream = fopen(buffer, "w");
+    printf("file %s\n", buffer);
+    if (file_stream == NULL) {
+        perror("bad fopen");
+    }
     logger_init(is_enable, level, file_stream);
     LOG_INFO("Инициализация логгера");
 }
