@@ -93,8 +93,9 @@ int work_cycle(int msg_queue_id)
         reply_msg.pid_from = 1;//To Do: fix this magic number(it's a type of server procces in msg queue) here and in msgrcv invoke
         reply_msg.msg_type = MESSAGE_REPLY;
 
+        //To Do: add error handling for handler func invoke
         handle_request(request_msg.payload.req_type, *reply_msg);
-
+        //To Do: add error handling for msgsnd func invoke
         msgsnd(msg_queue_id, *reply_msg, sizeof(reply_msg), 0);
     }
 }
