@@ -36,7 +36,7 @@ void unlink_file(int sig)
     if (unlink(PATH_NAME_FOR_FTOK)) {
         perror("Can not create unlink");
     }
-    exit (-1);
+    exit (0);
 }
 
 int main(int argc, char *argv[])
