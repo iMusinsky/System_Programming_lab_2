@@ -65,7 +65,8 @@ void parse_reply(message* msg)
 */
 void wait_for_response(int msg_id)
 {
-    printf("Waiting for reply...\n");
+    printf("\x1b[6;1H"); // перевод курсора вниз для ввода строки
+    printf("\x1b[0JWaiting for reply...\n");
     message new = {0};
     int status = msgrcv(msg_id, &new, sizeof(message) - sizeof(long), getpid(), 0);
     if(status == -1)
@@ -130,14 +131,17 @@ void send_msg(int msg_id, enum REQUEST_TYPE type)
 int work_cycle(int msg_id)
 {
     int is_running = 1;
+    printf("\x1b[2J");
     while (is_running)
     {
+        printf("\x1b[1;1H");
         printf("Please choose number of option:\n");
         printf("Option 1: Example 1\n");
         printf("Option 2: Example 2\n");
         printf("Option 3: Example 3\n");
         printf("Option 4: Exit\n");
 
+        printf("\x1b[KYour selection: ");
         int option = -1;
         scanf("%d", &option);
         switch (option)
